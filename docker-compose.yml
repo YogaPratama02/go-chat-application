@@ -1,0 +1,20 @@
+version: "3.8"
+
+services:
+  app:
+      container_name: go_chat_application
+      build: 
+        context: .
+        dockerfile: Dockerfile
+      ports: 
+        - 8000:8000 
+      restart: on-failure   
+      networks:
+        - go-chat-application
+
+networks:
+  go-chat-application:
+    driver: bridge
+
+volumes:
+  go-chat:

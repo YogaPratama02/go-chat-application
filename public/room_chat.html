@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
+    <title>Chat Room</title>
+</head>
+<body class="bg-gray-100 h-screen flex items-center justify-center">
+    <div class="w-full max-w-2xl mx-auto bg-white rounded-xl shadow-md overflow-hidden flex flex-col h-full">
+        <div class="px-4 py-5 bg-gray-800">
+            <h1 class="text-xl text-white font-semibold">Room Chat {{index . "roomName"}}</h1>
+            <h3 class="text-xl text-white font-semibold">Sender: {{index . "senderName"}}</h3>
+        </div>
+
+        <div id="messages" class="flex-1 overflow-y-auto p-4 bg-gray-100">
+            <!-- Messages will appear here -->
+        </div>
+
+        <div class="px-4 py-4 bg-white flex">
+            <input id="message" type="text" placeholder="Type your message..." class="flex-1 p-2 border rounded">
+            <button id="send" class="ml-2 p-2 bg-blue-500 text-white rounded">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const userId = {{.userId}};
+        const roomChatId = {{.roomChatId}};
+        console.log("USER ID", userId)
+        const ws = new WebSocket(`ws://localhost:8000/ws/room-chat/${userId}?room_chat_id=${roomChatId}`);
+
+        ws.onmessage = function(event) {
+            const messages = document.getElementById('messages');
+            const msg = JSON.parse(event.data);
+            console.log("=====MSG======",msg)
+            const messageElement = document.createElement('div');
+
+            if (msg.sender_id === userId) {
+                messageElement.className = 'mb-2 flex items-end justify-end';
+                messageElement.innerHTML = `
+                    <div class="p-2 bg-blue-100 text-gray-800 rounded-lg">
+                        <span class="font-semibold">You: </span> ${msg.content}
+                    </div>
+                `;
+            } else {
+                messageElement.className = 'mb-2 flex items-start';
+                messageElement.innerHTML = `
+                    <div class="p-2 bg-gray-200 text-gray-800 rounded-lg">
+                        <span class="font-semibold">${msg.sender_name}: </span> ${msg.content}
+                    </div>
+                `;
+            }
+            messages.appendChild(messageElement);
+            messages.scrollTop = messages.scrollHeight;
+        };
+
+        document.getElementById('send').onclick = function() {
+            const message = document.getElementById('message').value;
+            ws.send(JSON.stringify({ content: message }));
+            document.getElementById('message').value = '';
+        };
+    </script>
+</body>
+</html>

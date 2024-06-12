@@ -1,0 +1,1 @@
+DROP IF EXISTS TABLE room_chat_messages;
